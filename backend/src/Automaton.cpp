@@ -1,52 +1,86 @@
 #include "Automaton.hpp"
 #include <iostream>
 
-Automaton::Automaton(bool acceptByFinal) : acceptByFinalState(acceptByFinal) {}
-
-void Automaton::setInitialState(const std::string& state) {
-    initialState = state;
-    // Si el estado no existe, se agrega como no final
-    if (states.find(state) == states.end())
-        states[state] = {state, false};
+Automaton* createAutomaton(bool acceptByFinalState, Stack* stack) {
+    Automaton* a = new Automaton;
+    a->acceptByFinalState = acceptByFinalState;
+    a->initialState = nullptr;
+    a->stack = stack;
+    return a;
 }
 
-void Automaton::addState(const std::string& stateName, bool isFinal) {
-    states[stateName] = {stateName, isFinal};
+void destroyAutomaton(Automaton* a) {
+    for (auto& [_, state] : a->states) {
+        for (Transition* t : state->transitions)
+            delete t;
+        delete state;
+    }
+    delete a;
 }
 
-void Automaton::addTransition(const Transition& t) {
-    transitions[t.fromState].push_back(t);
+void addState(Automaton* a, const std::string& name, bool isFinal) {
+    State* s = new State{name, isFinal};
+    a->states[name] = s;
 }
 
-bool Automaton::simulate(const std::string& input, std::string& finalStateOut) {
-    std::string currentState = initialState;
-    stack.reset();
-    stack.pushString("Z");
+void setInitialState(Automaton* a, const std::string& name) {
+    if (a->states.find(name) == a->states.end())
+        addState(a, name, false);
+    a->initialState = a->states[name];
+}
+
+void addTransition(Automaton* a, const std::string& from, char input, char stackTop, const std::string& to, const std::string& replace) {
+    if (a->states.find(from) == a->states.end())
+        addState(a, from, false);
+    if (a->states.find(to) == a->states.end())
+        addState(a, to, false);
+
+    Transition* t = new Transition{a->states[from], input, stackTop, a->states[to], replace};
+    a->states[from]->transitions.push_back(t);
+}
+
+bool simulate(Automaton* a, const std::string& input, std::string& finalStateOut) {
+    if (!a->initialState || !a->stack) return false;
+
+    State* currentState = a->initialState;
+    resetStack(a->stack);
+    pushString(a->stack, "Z");
 
     size_t i = 0;
-    while (i <= input.size()) {
-        char currentInput = i < input.size() ? input[i] : '~';
-        bool transitioned = false;
+    bool progress = true;
 
-        for (const auto& t : transitions[currentState]) {
-            if ((t.inputSymbol == currentInput || t.inputSymbol == '~') && t.stackTop == stack.top()) {
-                stack.pop();
-                stack.pushString(t.stackReplace);
-                currentState = t.toState;
-                if (t.inputSymbol != '~') i++;
-                transitioned = true;
+    while (progress) {
+        progress = false;
+        char currentInput = i < input.size() ? input[i] : '~';
+
+        for (Transition* t : currentState->transitions) {
+            if ((t->inputSymbol == currentInput || t->inputSymbol == '~') && t->stackTop == topStack(a->stack)) {
+                popStack(a->stack);
+                pushString(a->stack, t->stackReplace);
+                currentState = t->toState;
+
+                if (t->inputSymbol != '~') ++i;
+
+                progress = true;
                 break;
             }
         }
 
-        if (!transitioned) break;
+        // Si no hay transiciones posibles y aún queda input, rechazamos
+        if (!progress && i < input.size()) {
+            finalStateOut = currentState->name;
+            return false;
+        }
     }
 
-    finalStateOut = currentState;
+    finalStateOut = currentState->name;
 
-    if (acceptByFinalState) {
-        return states[currentState].isFinal;
+    // Aceptación por estado final requiere:
+    // - haber consumido toda la entrada
+    // - estar en un estado final
+    if (a->acceptByFinalState) {
+        return (i == input.size() && currentState->isFinal);
     } else {
-        return stack.empty();
+        return isStackEmpty(a->stack);
     }
 }

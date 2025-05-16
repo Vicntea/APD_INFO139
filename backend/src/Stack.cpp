@@ -1,24 +1,27 @@
-// .src/Stack.cpp
 #include "Stack.hpp"
 
-void Stack::pushString(const std::string& str) {
+void initStack(Stack* s) {
+    while (!s->data.empty()) s->data.pop();
+}
+
+void resetStack(Stack* s) {
+    initStack(s);
+}
+
+void pushString(Stack* s, const std::string& str) {
     for (auto it = str.rbegin(); it != str.rend(); ++it) {
-        stack.push(*it);
+        s->data.push(*it);
     }
 }
 
-void Stack::pop() {
-    if (!stack.empty()) stack.pop();
+void popStack(Stack* s) {
+    if (!s->data.empty()) s->data.pop();
 }
 
-char Stack::top() const {
-    return stack.empty() ? '$' : stack.top();
+char topStack(const Stack* s) {
+    return s->data.empty() ? '$' : s->data.top();
 }
 
-bool Stack::empty() const {
-    return stack.empty();
-}
-
-void Stack::reset() {
-    while (!stack.empty()) stack.pop();
+bool isStackEmpty(const Stack* s) {
+    return s->data.empty();
 }

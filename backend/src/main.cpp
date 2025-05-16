@@ -1,47 +1,45 @@
 #include "Automaton.hpp"
+#include "Stack.hpp"
 #include <iostream>
 
-void modo_consola() {
-    Automaton apd(true); // true = acepta por estado final
+int main() {
+    Stack pila;
+    initStack(&pila);
 
-    // Definir estados
-    apd.addState("q0", false);
-    apd.addState("q1", false);
-    apd.addState("qf", true); // estado final
+    // Automaton que acepta por estado final
+    Automaton* a = createAutomaton(true, &pila);
 
-    apd.setInitialState("q0");
+    // Define solo transiciones. Los estados se crean automáticamente si no existen
+    setInitialState(a, "q0");
 
-    // Transiciones
-    apd.addTransition({"q0", 'a', 'Z', "q0", "AZ"});
-    apd.addTransition({"q0", 'a', 'A', "q0", "AA"});
-    apd.addTransition({"q0", 'b', 'A', "q1", ""});
-    apd.addTransition({"q1", 'b', 'A', "q1", ""});
-    apd.addTransition({"q1", ' ', 'Z', "qf", "Z"}); // transición epsilon
+    // Transiciones para aⁿ (apila 'A' por cada 'a')
+    addTransition(a, "q0", 'a', 'Z', "q0", "AZ");
+    addTransition(a, "q0", 'a', 'A', "q0", "AA");
 
-    std::string input;
-    std::cout << "Ingrese palabra: ";
-    std::cin >> input;
+    // Transición que cambia de fase: primer 'b'
+    addTransition(a, "q0", 'b', 'A', "q1", "");
+
+    // Transiciones para bⁿ (desapila una 'A' por cada 'b')
+    addTransition(a, "q1", 'b', 'A', "q1", "");
+
+    // Cuando la pila vuelve a tener 'Z', y ya no quedan más símbolos que leer:
+    // transición lambda para ir a estado final
+    addTransition(a, "q1", '~', 'Z', "q2", "");
+
+    // Declaramos q2 como estado final
+    a->states["q2"]->isFinal = true;
+
+    // Leer palabra
+    std::string palabra;
+    std::cout << "Ingrese una palabra (a^n b^n): ";
+    std::cin >> palabra;
 
     std::string estadoFinal;
-    if (apd.simulate(input, estadoFinal)) {
-        std::cout << "Palabra aceptada. Estado final alcanzado: " << estadoFinal << std::endl;
-    } else {
-        std::cout << "Palabra no aceptada. Estado final alcanzado: " << estadoFinal << std::endl;
-    }
-}
+    bool aceptada = simulate(a, palabra, estadoFinal);
 
-int main() {
-    int opcion = 0;
-    std::cout << "=== Simulador de Autómata Pushdown ===" << std::endl;
-    std::cout << "1. Modo Consola" << std::endl;
-    std::cout << "Seleccione una opción: ";
-    std::cin >> opcion;
+    std::cout << "Estado final: " << estadoFinal << "\n";
+    std::cout << (aceptada ? "Palabra aceptada" : "Palabra rechazada") << std::endl;
 
-    if (opcion == 1) {
-        modo_consola();
-    } else {
-        std::cout << "Opción no válida." << std::endl;
-    }
-
+    destroyAutomaton(a);
     return 0;
 }

@@ -1,11 +1,12 @@
-// ./include/Transition.hpp
 #pragma once
 #include <string>
 
+struct State; // Declaración adelantada
+
 struct Transition {
-    std::string fromState;
+    State* fromState;
     char inputSymbol;
     char stackTop;
-    std::string toState;
+    State* toState;
     std::string stackReplace;
 };

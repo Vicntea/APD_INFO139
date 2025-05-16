@@ -1,16 +1,14 @@
-// ./include/Stack.hpp
-
 #pragma once
 #include <stack>
 #include <string>
 
-class Stack {
-public:
-    void pushString(const std::string& str);
-    void pop();
-    char top() const;
-    bool empty() const;
-    void reset();
-private:
-    std::stack<char> stack;
+struct Stack {
+    std::stack<char> data;
 };
+
+void initStack(Stack* s);
+void resetStack(Stack* s);
+void pushString(Stack* s, const std::string& str);
+void popStack(Stack* s);
+char topStack(const Stack* s);
+bool isStackEmpty(const Stack* s);

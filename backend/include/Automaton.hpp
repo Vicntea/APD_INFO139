@@ -1,28 +1,28 @@
 #pragma once
 #include "Transition.hpp"
 #include "Stack.hpp"
-#include <unordered_map>
-#include <vector>
-#include <string>
 
-// Estructura para representar un estado
+#include <unordered_map>
+#include <string>
+#include <vector>
+
 struct State {
     std::string name;
-    bool isFinal = false;
+    bool isFinal;
+    std::vector<Transition*> transitions;
 };
 
-class Automaton {
-public:
-    Automaton(bool acceptByFinal);
-    void setInitialState(const std::string& state);
-    void addState(const std::string& stateName, bool isFinal);
-    void addTransition(const Transition& t);
-    bool simulate(const std::string& input, std::string& finalStateOut);
-
-private:
-    std::string initialState;
+struct Automaton {
     bool acceptByFinalState;
-    std::unordered_map<std::string, State> states;
-    std::unordered_map<std::string, std::vector<Transition>> transitions;
-    Stack stack;
+    State* initialState;
+    Stack* stack;
+    std::unordered_map<std::string, State*> states;
 };
+
+Automaton* createAutomaton(bool acceptByFinalState, Stack* stack);
+void destroyAutomaton(Automaton* automaton);
+
+void addState(Automaton* automaton, const std::string& name, bool isFinal);
+void setInitialState(Automaton* automaton, const std::string& name);
+void addTransition(Automaton* automaton, const std::string& from, char input, char stackTop, const std::string& to, const std::string& replace);
+bool simulate(Automaton* automaton, const std::string& input, std::string& finalStateOut);
