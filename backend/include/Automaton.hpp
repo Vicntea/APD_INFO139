@@ -25,4 +25,4 @@ void destroyAutomaton(Automaton* automaton);
 void addState(Automaton* automaton, const std::string& name, bool isFinal);
 void setInitialState(Automaton* automaton, const std::string& name);
 void addTransition(Automaton* automaton, const std::string& from, char input, char stackTop, const std::string& to, const std::string& replace);
-bool simulate(Automaton* automaton, const std::string& input, std::string& finalStateOut);
+char simulate(Automaton* automaton, const std::string& input, std::string& finalStateOut);
