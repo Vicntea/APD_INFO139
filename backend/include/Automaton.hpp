@@ -13,7 +13,7 @@ struct State {
 };
 
 struct Automaton {
-    bool acceptByFinalState;
+    bool acceptWord;
     State* initialState;
     Stack* stack;
     std::unordered_map<std::string, State*> states;

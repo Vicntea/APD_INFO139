@@ -1,9 +1,9 @@
 #include "Automaton.hpp"
 #include <iostream>
 
-Automaton* createAutomaton(bool acceptByFinalState, Stack* stack) {
+Automaton* createAutomaton(bool acceptWord, Stack* stack) {
     Automaton* a = new Automaton;
-    a->acceptByFinalState = acceptByFinalState;
+    a->acceptWord = acceptWord;
     a->initialState = nullptr;
     a->stack = stack;
     return a;
